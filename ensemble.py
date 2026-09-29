@@ -69,6 +69,7 @@ def main():
     weights = search_weights(val_probs, y_val, args.step)
 
     rows = [(name, scores(y_test, p)) for name, p in zip(args.models, test_probs)]
+    rows.append(("EQUAL_AVG", scores(y_test, np.mean(test_probs, axis=0))))
     rows.append(("ENSEMBLE", scores(y_test, combine(test_probs, weights))))
 
     print("\nWeights (fit on validation set):")

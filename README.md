@@ -16,7 +16,7 @@ Every model takes the same raw 256×256 RGB input and outputs **P(real)**. Prepr
 
 ### Ensemble
 
-`ensemble.py` runs every trained model on the **validation** set and grid-searches weights that sum to 1 (step 0.05) to minimise log loss. It then reports each model and the ensemble on the held-out **test** set. The weights are saved to `artifacts/ensemble_weights.json`.
+`ensemble.py` runs every trained model on the **validation** set and grid-searches weights that sum to 1 (step 0.05) to minimise log loss. It then reports each model and the ensemble on the held-out **test** set, alongside a plain equal-weight average (`EQUAL_AVG`) as a baseline. The weights are saved to `artifacts/ensemble_weights.json`.
 
 ---
 
