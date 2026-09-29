@@ -2,6 +2,8 @@
 
 Detects GAN-generated (fake) face images with a weighted-average ensemble of three models: a CNN pretrained on ImageNet (VGG16), a CNN trained from scratch, and a Vision Transformer. The models look at images in different ways, so their errors overlap less than any single model's, and the ensemble is more accurate than each one alone.
 
+**Background:** this is a rebuild of my earlier prototype, a Kaggle notebook with a from-scratch CNN plus separate scripts fine-tuning VGG16, VGG19, InceptionV3 and ResNet50. This version keeps the two strongest and most different models (VGG16, custom CNN), drops the rest, adds a Vision Transformer, replaces a fixed-weight average with weights learned on the validation set, and adds cross-dataset testing and Grad-CAM to check whether the models generalise.
+
 ---
 
 ## Models
