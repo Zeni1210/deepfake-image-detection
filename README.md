@@ -69,7 +69,7 @@ python evaluate.py --name <test-set-name> --real-dir path/to/real --fake-dir pat
 python gradcam.py path/to/face1.jpg path/to/face2.jpg
 ```
 
-`train.py` options: `--epochs`, `--lr`, `--batch-size`, `--mixed-precision`, and `--augment {full,flip,none}`. Training uses early stopping and reduces the learning rate when validation loss plateaus. Default settings:
+`train.py` options: `--epochs`, `--lr`, `--batch-size`, `--mixed-precision`, `--augment {full,flip,none}`, and for small GPUs `--grad-accum N` (effective batch = N × batch size) and `--no-xla` (turns off XLA compilation to save memory). For example, the ViT fits on a 4 GB laptop GPU with `--batch-size 8 --grad-accum 4 --mixed-precision`. Training uses early stopping and reduces the learning rate when validation loss plateaus. Default settings:
 
 | Model | Learning rate | Epochs | Augmentation |
 |-------|---------------|--------|--------------|

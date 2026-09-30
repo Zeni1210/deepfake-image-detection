@@ -53,6 +53,9 @@ def main():
     parser.add_argument("--augment", choices=AUGMENTATIONS, default=None,
                         help="training augmentation (default depends on the model)")
     parser.add_argument("--mixed-precision", action="store_true", help="float16 compute (faster on modern GPUs)")
+    parser.add_argument("--grad-accum", type=int, default=1,
+                        help="accumulate gradients over N batches: effective batch = N x --batch-size (for small GPUs)")
+    parser.add_argument("--no-xla", action="store_true", help="disable XLA compilation (saves GPU memory)")
     args = parser.parse_args()
 
     name = args.model
@@ -68,10 +71,12 @@ def main():
     test_ds = load_split("test", args.batch_size, args.data_dir)
 
     model = BUILDERS[name]()
-    optimizer = (keras.optimizers.AdamW(lr, weight_decay=0.05) if name == "vit"
-                 else keras.optimizers.Adam(lr))
+    accum = {"gradient_accumulation_steps": args.grad_accum} if args.grad_accum > 1 else {}
+    optimizer = (keras.optimizers.AdamW(lr, weight_decay=0.05, **accum) if name == "vit"
+                 else keras.optimizers.Adam(lr, **accum))
     model.compile(optimizer=optimizer, loss="binary_crossentropy",
-                  metrics=["accuracy", keras.metrics.AUC(name="auc")])
+                  metrics=["accuracy", keras.metrics.AUC(name="auc")],
+                  jit_compile=False if args.no_xla else "auto")
     model.summary()
 
     callbacks = [
