@@ -105,17 +105,27 @@ A GPU is strongly recommended. ViT-B/16 in particular is slow on CPU.
 
 | Model       | Accuracy | AUC | Log loss |
 |-------------|----------|-----|----------|
-| VGG16       | **99.38%** | **0.9998** | 0.022 |
-| Custom CNN  | 79.36%   | 0.8823 | 0.453 |
-| ViT-B/16    | pending  | –   | – |
-| Equal average | 99.19% | 0.9972 | 0.170 |
-| **Weighted ensemble** | **99.38%** | **0.9998** | **0.022** |
+| VGG16       | 99.38%   | 0.9998 | 0.0219 |
+| Custom CNN  | 95.22%   | 0.9889 | 0.1536 |
+| ViT-B/16    | 99.82%   | 1.0000 | 0.0051 |
+| Equal average | 99.84% | 1.0000 | 0.0263 |
+| **Weighted ensemble** | **99.84%** | **1.0000** | **0.0048** |
 
-The validation-fitted weights were VGG16 1.00 / Custom CNN 0.00. The search correctly learned to drop the weaker model, where a plain average is dragged down by it (23% more errors, 7.8× the log loss). The earlier prototype's VGG16 reached 95.27%. Most of the gain comes from using the preprocessing the ImageNet weights expect, plus checkpointing on validation loss.
+- **Weights learned on the validation set:** ViT 0.85 / VGG16 0.15 / Custom CNN 0.00. The ensemble makes 74% fewer errors than VGG16 alone (0.62% → 0.16%). It matches the equal average's accuracy with 82% lower log loss, because it stops the weak CNN from pulling the probabilities off.
+- **Transformer vs. CNN:** after 5 epochs, the ViT beats VGG16 after 10 (99.82% vs 99.38%) and has 4× lower log loss.
+- **Custom CNN fix:** the first run, with full geometric augmentation, reached only 79.36%. Switching to flip-only augmentation brought it to 95.22%, matching the unaugmented prototype. Rotation and zoom resample pixels and blur the artefacts a shallow CNN relies on.
+- **Improvement over the prototype:** its VGG16 reached 95.27%. Using the preprocessing the ImageNet weights expect, plus keeping the checkpoint with the best validation loss, raised it to 99.38%.
 
-The custom CNN scores far below the prototype's 95%. The likely cause is the geometric augmentation (rotation, zoom), which blurs the pixel-level artefacts a shallow from-scratch network depends on; retraining without it is next.
+**Cross-dataset** ([Deepfake and Real Images](https://www.kaggle.com/datasets/manjilkarki/deepfake-and-real-images) test split, unseen in training and weight fitting):
 
-**Cross-dataset** evaluation and Grad-CAM results are pending the ViT run.
+| Model       | Accuracy | Real acc. | Fake acc. | AUC |
+|-------------|----------|-----------|-----------|-----|
+| VGG16       | 49.22%   | 98.17%    | 0.97%     | 0.487 |
+| Custom CNN  | 49.68%   | 99.46%    | 0.62%     | 0.513 |
+| ViT-B/16    | 49.29%   | 97.78%    | 1.49%     | 0.476 |
+| **Weighted ensemble** | 49.35% | 98.04% | 1.37% | 0.473 |
+
+**Every model falls to chance.** Near-perfect in-distribution scores don't carry over. The models label almost every image "real" and catch about 1% of the new fakes. They learned the fingerprints of one generator (StyleGAN), not general signs of manipulation, so anything without those fingerprints looks real to them. Even the ViT, the strongest model in-distribution, generalises no better than the CNNs. This is the known generalisation problem in deepfake detection, and why single-generator benchmarks overstate real-world performance. Training on several generators or manipulation types is the natural next step.
 
 ---
 
