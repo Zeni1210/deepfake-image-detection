@@ -69,7 +69,15 @@ python evaluate.py --name <test-set-name> --real-dir path/to/real --fake-dir pat
 python gradcam.py path/to/face1.jpg path/to/face2.jpg
 ```
 
-`train.py` options: `--epochs`, `--lr`, `--batch-size`, `--mixed-precision`. Training uses early stopping and reduces the learning rate when validation loss plateaus. Default settings: VGG16 lr 1e-4 for 10 epochs, Custom CNN lr 1e-3 for 10 epochs, ViT lr 2e-5 for 5 epochs.
+`train.py` options: `--epochs`, `--lr`, `--batch-size`, `--mixed-precision`, and `--augment {full,flip,none}`. Training uses early stopping and reduces the learning rate when validation loss plateaus. Default settings:
+
+| Model | Learning rate | Epochs | Augmentation |
+|-------|---------------|--------|--------------|
+| VGG16 | 1e-4 | 10 | full: flip, rotation, shift, zoom |
+| Custom CNN | 1e-3 | 10 | flip only |
+| ViT | 2e-5 | 5 | full |
+
+The ViT weights download from KerasHub on first use. Where downloads are blocked (e.g. Kaggle batch runs), attach the model as an input and set `DEEPFAKE_VIT_PRESET` to the folder containing its `config.json`.
 
 A GPU is strongly recommended. ViT-B/16 in particular is slow on CPU.
 

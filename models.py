@@ -3,12 +3,17 @@
 Each model takes raw 0-255 RGB images of config.IMAGE_SIZE and outputs a
 single sigmoid probability that the image is real.
 """
+import os
+
 import keras
 from keras import layers
 
 import config
 
-VIT_PRESET = "vit_base_patch16_224_imagenet"
+# A KerasHub preset name, or a local folder holding the preset's config.json and
+# weights. Kaggle's batch runs can't download models, so there you attach the
+# model as a notebook input and point this at its folder.
+VIT_PRESET = os.environ.get("DEEPFAKE_VIT_PRESET", "vit_base_patch16_224_imagenet")
 
 
 @keras.saving.register_keras_serializable(package="deepfake")

@@ -9,22 +9,29 @@ from keras import layers
 import config
 
 
-def _augmenter():
-    # Kept mild on purpose: heavy warping blurs the high-frequency
-    # artifacts that give generated faces away.
-    return keras.Sequential([
-        layers.RandomFlip("horizontal"),
-        layers.RandomRotation(0.05),
-        layers.RandomTranslation(0.1, 0.1),
-        layers.RandomZoom(0.1),
-    ], name="augmentation")
+AUGMENTATIONS = ("full", "flip", "none")
 
 
-def load_split(split, batch_size=32, data_dir=None, training=False):
+def _augmenter(mode):
+    # Flipping moves pixels without resampling them. Rotation, shifts and zoom
+    # interpolate, which blurs the pixel-level artifacts that give generated
+    # faces away; pretrained backbones cope, a small from-scratch CNN doesn't.
+    steps = [layers.RandomFlip("horizontal")]
+    if mode == "full":
+        steps += [
+            layers.RandomRotation(0.05),
+            layers.RandomTranslation(0.1, 0.1),
+            layers.RandomZoom(0.1),
+        ]
+    return keras.Sequential(steps, name="augmentation")
+
+
+def load_split(split, batch_size=32, data_dir=None, training=False, augment="full"):
     """Load "train", "valid" or "test" as batches of (uint8-range float images, labels).
 
-    Training data is shuffled and augmented; other splits keep a fixed order
-    so predictions from different models line up for the ensemble.
+    Training data is shuffled and augmented (`augment`: one of AUGMENTATIONS);
+    other splits keep a fixed order so predictions from different models line
+    up for the ensemble.
     """
     data_dir = Path(data_dir or config.DATA_DIR)
     ds = keras.utils.image_dataset_from_directory(
@@ -37,9 +44,9 @@ def load_split(split, batch_size=32, data_dir=None, training=False):
         shuffle=training,
         seed=config.SEED,
     )
-    if training:
-        augment = _augmenter()
-        ds = ds.map(lambda x, y: (augment(x, training=True), y),
+    if training and augment != "none":
+        augmenter = _augmenter(augment)
+        ds = ds.map(lambda x, y: (augmenter(x, training=True), y),
                     num_parallel_calls=tf.data.AUTOTUNE)
     return ds.prefetch(tf.data.AUTOTUNE)
 
