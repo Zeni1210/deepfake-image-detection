@@ -127,6 +127,18 @@ A GPU is strongly recommended. ViT-B/16 in particular is slow on CPU.
 
 **Every model falls to chance.** Near-perfect in-distribution scores don't carry over. The models label almost every image "real" and catch about 1% of the new fakes. They learned the fingerprints of one generator (StyleGAN), not general signs of manipulation, so anything without those fingerprints looks real to them. Even the ViT, the strongest model in-distribution, generalises no better than the CNNs. This is the known generalisation problem in deepfake detection, and why single-generator benchmarks overstate real-world performance. Training on several generators or manipulation types is the natural next step.
 
+**Grad-CAM** (test-set images; warmer colours mark regions that pushed the model towards its prediction):
+
+![Grad-CAM on a real face](docs/gradcam_real.png)
+![Grad-CAM on a StyleGAN fake](docs/gradcam_fake.png)
+
+Across the test images, the three models rely on different evidence:
+- **VGG16:** concentrated blobs on central facial regions, i.e. the nose, mouth, cheeks and forehead.
+- **Custom CNN:** thin, high-frequency responses along edges such as hairlines, brow and eye contours, the jawline and clothing. On fakes it barely activates at all.
+- **ViT:** diffuse, near-uniform maps covering face and background. This fits self-attention, which mixes information across all patches, but it also means Grad-CAM shows the ViT's reasoning only coarsely; attention rollout would be a finer tool.
+
+The different evidence is consistent with why combining VGG16 and the ViT lowers error. The shared failure on unseen fakes suggests that what each model picks up is still specific to one generator.
+
 ---
 
 ## Acknowledgments
