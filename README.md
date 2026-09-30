@@ -93,23 +93,21 @@ A GPU is strongly recommended. ViT-B/16 in particular is slow on CPU.
 
 ## Results
 
-Results are pending a full training run.
+**In-distribution** (140k test set, 20k held-out images; Kaggle Tesla T4):
 
-**In-distribution** (140k test set, 20k images):
+| Model       | Accuracy | AUC | Log loss |
+|-------------|----------|-----|----------|
+| VGG16       | **99.38%** | **0.9998** | 0.022 |
+| Custom CNN  | 79.36%   | 0.8823 | 0.453 |
+| ViT-B/16    | pending  | –   | – |
+| Equal average | 99.19% | 0.9972 | 0.170 |
+| **Weighted ensemble** | **99.38%** | **0.9998** | **0.022** |
 
-| Model       | Accuracy | AUC |
-|-------------|----------|-----|
-| VGG16       | –        | –   |
-| Custom CNN  | –        | –   |
-| ViT-B/16    | –        | –   |
-| Equal average | –      | –   |
-| **Weighted ensemble** | – | – |
+The validation-fitted weights were VGG16 1.00 / Custom CNN 0.00. The search correctly learned to drop the weaker model, where a plain average is dragged down by it (23% more errors, 7.8× the log loss). The earlier prototype's VGG16 reached 95.27%. Most of the gain comes from using the preprocessing the ImageNet weights expect, plus checkpointing on validation loss.
 
-**Cross-dataset** (unseen source, not used in training or weight fitting):
+The custom CNN scores far below the prototype's 95%. The likely cause is the geometric augmentation (rotation, zoom), which blurs the pixel-level artefacts a shallow from-scratch network depends on; retraining without it is next.
 
-| Model       | Accuracy | Real acc. | Fake acc. | AUC |
-|-------------|----------|-----------|-----------|-----|
-| **Weighted ensemble** | – | – | – | – |
+**Cross-dataset** evaluation and Grad-CAM results are pending the ViT run.
 
 ---
 
